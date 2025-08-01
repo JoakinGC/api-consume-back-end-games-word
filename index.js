@@ -192,7 +192,7 @@ async function main() {
   const palabras = await obtenerPalabrasFrecuentes(1000);
   const resultados = [];
 
-  const result = await obtenerInfoWikcionario("forma");
+  //const result = await obtenerInfoWikcionario("forma");
 
   //console.log(result);
 

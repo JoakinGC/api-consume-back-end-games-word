@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Definición con Free Dictionary API</title>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; }
+    #resultado { margin-top: 2rem; padding: 1rem; background: #f1f1f1; border-radius: 6px; }
+    .palabra { font-weight: bold; font-size: 1.2em; }
+    .definicion { margin: 0.5rem 0; }
+  </style>
+</head>
+<body>
+  <h1>Consulta de definiciones en inglés</h1>
+  <input type="text" id="palabra" placeholder="Escribe una palabra (en inglés)..." />
+  <button onclick="buscarDefinicion()">Buscar</button>
+
+  <div id="resultado"></div>
+
+  <script>
+    async function buscarDefinicion() {
+      const palabra = document.getElementById('palabra').value.trim().toLowerCase();
+      const resultado = document.getElementById('resultado');
+      resultado.innerHTML = "";
+
+      if (!palabra) {
+        resultado.innerHTML = "<p style='color:red;'>❗ Ingresa una palabra.</p>";
+        return;
+      }
+
+      const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${palabra}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data.title === "No Definitions Found") {
+          resultado.innerHTML = `<p>❌ No se encontró la palabra <b>${palabra}</b>.</p>`;
+          return;
+        }
+
+        const entry = data[0];
+        const meanings = entry.meanings;
+
+        let html = `<div class="palabra">📘 ${entry.word}</div>`;
+        html += `<p><b>Fonética:</b> ${entry.phonetic || "(sin datos)"}</p>`;
+
+        meanings.forEach((m) => {
+          html += `<h3>${m.partOfSpeech}</h3>`;
+          m.definitions.forEach((def, i) => {
+            html += `<div class="definicion">🔹 <b>Definición ${i + 1}:</b> ${def.definition}</div>`;
+            if (def.example) {
+              html += `<div style="margin-left: 1rem;"><i>Ejemplo:</i> ${def.example}</div>`;
+            }
+          });
+        });
+
+        resultado.innerHTML = html;
+
+      } catch (error) {
+        resultado.innerHTML = `<p style="color:red;">💥 Error: ${error.message}</p>`;
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>

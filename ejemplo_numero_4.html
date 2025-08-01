@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Definiciones limpias</title>
+</head>
+<body>
+  <h1>Buscar definiciones</h1>
+  <input type="text" id="palabra" placeholder="Palabra a buscar">
+  <button onclick="buscar()">Buscar</button>
+
+  <script>
+    async function buscar() {
+      const palabra = document.getElementById("palabra").value;
+      const url = `https://es.wiktionary.org/w/api.php?action=parse&page=${encodeURIComponent(palabra)}&format=json&origin=*`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!data.parse) {
+          console.log(`❌ No se encontró la palabra "${palabra}".`);
+          return;
+        }
+
+        const html = data.parse.text["*"];
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        doc.querySelectorAll("style, script").forEach(el => el.remove());
+
+        const clasesNoDeseadas = [
+          ".mw-parser-output .definicion-impropia",
+          ".mnv",
+          ".impropia",
+          ".etim",
+          ".referencias",
+          ".encabezado", 
+        ];
+        clasesNoDeseadas.forEach(selector => {
+          doc.querySelectorAll(selector).forEach(el => el.remove());
+        });
+
+        const dd = doc.querySelectorAll("dd");
+        if (dd.length === 0) {
+          console.log(`⚠️ No se encontraron definiciones para "${palabra}".`);
+          return;
+        }
+
+        console.log(`📚 Definiciones limpias para "${palabra}":\n`);
+        console.log(dd);
+        
+        let contador = 1;
+        dd.forEach(dt => {
+          const texto = dt.textContent.trim();
+
+          
+          if (
+            texto &&
+            !/^\.mw-parser-output/.test(texto) &&
+            !texto.includes("{") &&
+            texto.length > 3
+          ) {
+            console.log(`👉 Definición ${contador++}: ${texto}`);
+          }
+        });
+
+      } catch (err) {
+        console.error("💥 Error al consultar:", err);
+      }
+    }
+  </script>
+</body>
+</html>

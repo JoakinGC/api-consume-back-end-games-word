@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Origen del Latín</title>
+</head>
+<body>
+  <h1>Buscar origen del latín</h1>
+  <input type="text" id="palabra" placeholder="Palabra a buscar">
+  <button onclick="buscar()">Buscar</button>
+
+  <div id="resultado"></div>
+
+  <script>
+    async function buscar() {
+      const palabra = document.getElementById("palabra").value;
+      const url = `https://es.wiktionary.org/w/api.php?action=parse&page=${encodeURIComponent(palabra)}&format=json&origin=*`;
+
+      const contenedor = document.getElementById("resultado");
+      contenedor.innerHTML = "";
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!data.parse) {
+          contenedor.innerText = `❌ No se encontró la palabra "${palabra}".`;
+          return;
+        }
+
+        const html = data.parse.text["*"];
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        const textoBuscado = [];
+        const etiquetas = doc.querySelectorAll("p, li, dd, dt");
+
+        etiquetas.forEach(el => {
+          const texto = el.textContent;
+
+          const match = texto.match(/del lat[ií]n\s+(.+?)([.,;]|$)/i);
+          if (match) {
+            // Si la palabra en latín viene dentro de un <a> u otra etiqueta
+            const rawHTML = el.innerHTML;
+            const regex = /del lat[ií]n\s+(.+?)([.,;]|<\/|$)/i;
+            const matchHTML = rawHTML.match(regex);
+
+            if (matchHTML) {
+              const parserInterno = new DOMParser();
+              const frag = parserInterno.parseFromString(matchHTML[1], "text/html");
+              const limpio = frag.body.textContent.trim();
+              textoBuscado.push(limpio);
+            }
+          }
+        });
+
+        if (textoBuscado.length === 0) {
+          contenedor.innerText = `⚠️ No se encontró etimología del latín para "${palabra}".`;
+        } else {
+          contenedor.innerHTML = `<h2>🔎 Origen en latín de "${palabra}":</h2>`;
+          textoBuscado.forEach((lat, i) => {
+            const p = document.createElement("p");
+            p.innerText = `👉 Resultado ${i + 1}: ${lat}`;
+            contenedor.appendChild(p);
+          });
+        }
+
+      } catch (err) {
+        console.error("💥 Error al consultar:", err);
+        contenedor.innerText = "❌ Error al consultar la API.";
+      }
+    }
+  </script>
+</body>
+</html>

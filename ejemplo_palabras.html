@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Explorador de Wikcionario</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1rem;
+    }
+    #resultado {
+      margin-top: 2rem;
+      padding: 1rem;
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+    }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Explorador de Wikcionario</h1>
+  <input type="text" id="palabra" placeholder="Escribe una palabra..." />
+  <button onclick="buscarEtimologia()">Buscar</button>
+
+  <div id="resultado"></div>
+
+  <script>
+    const palabras = [];
+    async function buscarEtimologia() {
+      const palabra = document.getElementById('palabra').value.trim();
+      const resultado = document.getElementById('resultado');
+      resultado.innerHTML = "";
+
+      if (!palabra) {
+        resultado.innerHTML = "<p style='color:red;'>❗ Ingresa una palabra para buscar.</p>";
+        return;
+      }
+
+      const url = `https://es.wiktionary.org/w/api.php?` + new URLSearchParams({
+        action: "parse",
+        page: palabra,
+        format: "json",
+        origin: "*"
+      });
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!data.parse) {
+          resultado.innerHTML = `<p>❌ No se encontró la palabra <b>${palabra}</b>.</p>`;
+          return;
+        }
+
+        const html = data.parse.text["*"];
+
+        // Mostrar el HTML bruto en pantalla
+        resultado.innerHTML = `
+          <h2>Contenido HTML devuelto por Wikcionario:</h2>
+          <div style="border: 1px solid #ddd; padding: 1rem; background: #fff;">
+            ${html}
+          </div>
+        `;
+
+        console.log("🔎 HTML bruto recibido:");
+        console.log(html);
+
+
+        console.log(html.match("1"));
+        
+
+      } catch (error) {
+        resultado.innerHTML = `<p style="color:red;">💥 Error: ${error.message}</p>`;
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>MediaWiki Definiciones</title>
+</head>
+<body>
+  <h1>Consulta Definiciones</h1>
+  <input type="text" id="palabra" placeholder="Escribe una palabra">
+  <button onclick="buscar()">Buscar</button>
+
+  <script>
+    async function buscar() {
+      const palabra = document.getElementById("palabra").value;
+      const url = `https://es.wiktionary.org/w/api.php?action=parse&page=${encodeURIComponent(palabra)}&format=json&origin=*`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!data.parse) {
+          console.log(`❌ No se encontró la palabra "${palabra}".`);
+          return;
+        }
+
+        const html = data.parse.text["*"];
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+
+        const dts = doc.querySelectorAll("dd");
+        console.log(dts);
+        console.log(doc);
+        
+        if (dts.length === 0) {
+          console.log(`⚠️ No se encontraron definiciones para "${palabra}".`);
+        }
+
+        console.log(`📚 Definiciones encontradas para "${palabra}":\n`);
+        dts.forEach((dt, index) => {
+          const textoLimpio = dt.textContent.trim();
+          if (textoLimpio) {
+            const resultDIV = document.querySelector("#result");
+            console.log(`👉 Definición ${index + 1}:`, textoLimpio);
+          }
+        });
+      } catch (err) {
+        console.error("💥 Error al consultar la API:", err);
+      }
+    }
+  </script>
+</body>
+</html>

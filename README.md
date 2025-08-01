@@ -1,6 +1,6 @@
 # Consumo de API
 
-Creación de scripts que muestran con ejemplos la creación y el añadido de palabras al back end.
+Creación de scripts que muestran con ejemplos la creación y el añadido de palabras al back end. Sitio desplegado en (https://joakingc.github.io/api-consume-back-end-games-word/)
 
 ## ¿Cómo lo hace?
 
